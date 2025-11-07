@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt Manager Pro</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4361ee">
+    <meta name="application-name" content="Receipt Manager Pro">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Receipt Manager">
+    <meta name="description" content="سیستم مدیریت رسیدها و نمایندگان">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-TileColor" content="#4361ee">
+    <meta name="msapplication-tap-highlight" content="no">
+
+    <!-- Manifest -->
+    <link rel="manifest" href="./manifest.json" crossorigin="use-credentials">
+
+    <!-- آیکون‌ها -->
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-512.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+
+    <!-- استایل‌ها -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css">
+</head>
+<body>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
+    <script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+    
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-receipt"></i>
+                    <h1>Receipt Manager Pro</h1>
+                </div>
+                <div class="header-actions">
+                    <button id="backupBtn" class="btn btn-outline">
+                        <i class="fas fa-download"></i> پشتیبان‌گیری
+                    </button>
+                    <button id="restoreBtn" class="btn btn-outline">
+                        <i class="fas fa-upload"></i> بازیابی
+                    </button>
+                    
+                    <!-- دکمه‌های جدید چاپ و خروجی -->
+                    <div class="export-dropdown">
+                        <button class="btn btn-success" id="exportBtn">
+                            <i class="fas fa-file-export"></i> خروجی
+                        </button>
+                        <div class="export-menu">
+                            <button class="export-option" data-type="print">
+                                <i class="fas fa-print"></i> چاپ گزارش
+                            </button>
+                            <button class="export-option" data-type="excel">
+                                <i class="fas fa-file-excel"></i> خروجی Excel
+                            </button>
+                            <button class="export-option" data-type="pdf">
+                                <i class="fas fa-file-pdf"></i> خروجی PDF
+                            </button>
+                            <button class="export-option" data-type="receipt-print">
+                                <i class="fas fa-receipt"></i> چاپ رسید
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button id="clearAllBtn" class="btn btn-danger">
+                        <i class="fas fa-broom"></i> پاک کردن همه
+                    </button>
+                    <input type="file" id="restoreFile" accept=".json" style="display: none;">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="tabs">
+        <div class="container">
+            <div class="tab-buttons">
+                <button class="tab-button active" data-tab="agents">مدیریت نمایندگان</button>
+                <button class="tab-button" data-tab="receipts">ثبت رسید</button>
+                <button class="tab-button" data-tab="search">جستجو</button>
+                <button class="tab-button" data-tab="reports">گزارشات</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- تب مدیریت نمایندگان -->
+        <div id="agents" class="tab-content active">
+            <div class="section-header">
+                <h2>مدیریت نمایندگان</h2>
+                <button id="addAgentBtn" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> افزودن نماینده
+                </button>
+            </div>
+            
+            <div class="agents-grid" id="agentsList">
+                <!-- لیست نمایندگان توسط JavaScript پر می‌شود -->
+            </div>
+            
+        </div>
+
+        <!-- تب ثبت رسید -->
+        <div id="receipts" class="tab-content">
+            <div class="section-header">
+                <h2>ثبت رسید جدید</h2>
+            </div>
+            
+            <form id="receiptForm" class="form">
+                <div class="form-group">
+                    <label for="agentSelect">انتخاب نماینده</label>
+                    <select id="agentSelect" required>
+                        <option value="">لطفاً نماینده را انتخاب کنید</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="receiptDate">تاریخ رسید (شمسی)</label>
+                    <div class="date-input-container">
+                        <input type="text" id="receiptDate" class="date-input" required placeholder="برای انتخاب تاریخ کلیک کنید">
+                        <i class="fas fa-calendar-alt date-input-icon"></i>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="receiptDescription">شرح رسید</label>
+                    <textarea id="receiptDescription" rows="3" required placeholder="شرح مختصری درباره رسید"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="receiptAmount">مبلغ (دالر)</label>
+                    <input type="number" id="receiptAmount" required placeholder="1000">
+                </div>
+                
+                <div class="form-group">
+                    <label for="receiptImage">بارگذاری تصویر رسید</label>
+                    <div class="file-upload">
+                        <input type="file" id="receiptImage" accept="image/*,.pdf">
+                        <label for="receiptImage" class="file-upload-label">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>انتخاب فایل (تصویر یا PDF)</span>
+                        </label>
+                    </div>
+                    <div id="imagePreview" class="image-preview"></div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-save"></i> ذخیره رسید
+                </button>
+            </form>
+        </div>
+
+        <!-- تب جستجو -->
+        <div id="search" class="tab-content">
+            <div class="section-header">
+                <h2>جستجوی رسیدها</h2>
+            </div>
+            
+            <div class="search-form">
+                <div class="form-group">
+                    <label for="searchDate">جستجو بر اساس تاریخ (شمسی)</label>
+                    <div class="date-input-container">
+                        <input type="text" id="searchDate" class="date-input" placeholder="برای انتخاب تاریخ کلیک کنید">
+                        <i class="fas fa-calendar-alt date-input-icon"></i>
+                    </div>
+                </div>
+                <button id="searchBtn" class="btn btn-primary">
+                    <i class="fas fa-search"></i> جستجو
+                </button>
+            </div>
+            
+            <div id="searchResults" class="search-results">
+                <!-- نتایج جستجو اینجا نمایش داده می‌شود -->
+            </div>
+        </div>
+
+        <!-- تب گزارشات -->
+        <div id="reports" class="tab-content">
+            <div class="section-header">
+                <h2>گزارشات و آمار</h2>
+            </div>
+            
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalAgents">0</h3>
+                        <p>تعداد نمایندگان</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalReceipts">0</h3>
+                        <p>تعداد رسیدها</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalAmount">0</h3>
+                        <p>مجموع مبالغ (دالر)</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="recent-receipts">
+                <h3>آخرین رسیدها</h3>
+                <div id="recentReceiptsList">
+                    <!-- لیست آخرین رسیدها اینجا نمایش داده می‌شود -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- مودال نماینده -->
+    <div id="agentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="agentModalTitle">افزودن نماینده جدید</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="agentForm">
+                    <input type="hidden" id="agentId">
+                    <div class="form-group">
+                        <label for="agentName">نام نماینده</label>
+                        <input type="text" id="agentName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="agentPhone">شماره تماس</label>
+                        <input type="tel" id="agentPhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="agentAddress">آدرس</label>
+                        <textarea id="agentAddress" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="agentNotes">یادداشت</label>
+                        <textarea id="agentNotes" rows="3"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline close-modal">انصراف</button>
+                        <button type="submit" class="btn btn-primary">ذخیره نماینده</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال جزئیات نماینده -->
+    <div id="agentDetailsModal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2 id="agentDetailsTitle">جزئیات نماینده</h2>
+                <div class="modal-actions">
+                    <div class="agent-export-dropdown">
+                        <button class="btn btn-success btn-sm" id="agentExportBtn">
+                            <i class="fas fa-file-export"></i> خروجی
+                        </button>
+                        <div class="export-menu">
+                            <button class="export-option" data-type="agent-print">
+                                <i class="fas fa-print"></i> چاپ پروفایل
+                            </button>
+                            <button class="export-option" data-type="agent-excel">
+                                <i class="fas fa-file-excel"></i> خروجی Excel
+                            </button>
+                            <button class="export-option" data-type="agent-pdf">
+                                <i class="fas fa-file-pdf"></i> خروجی PDF
+                            </button>
+                            <button class="export-option" data-type="agent-receipts-print">
+                                <i class="fas fa-receipt"></i> چاپ همه رسیدها
+                            </button>
+                        </div>
+                    </div>
+                    <button class="close-modal">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div id="agentDetailsContent">
+                    <!-- اطلاعات نماینده و رسیدهایش اینجا نمایش داده می‌شود -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ناتفیکیشن -->
+    <div id="notification" class="notification"></div>
+
+    <script src="./script.js"></script>
+    <script src="./sw.js"></script>
+    <!-- ایجاد آیکون‌های موقت اگر فایل‌ها وجود ندارند -->
+
+
+</body>
+</html>
